@@ -32,7 +32,7 @@ func main() {
 	mux.HandleFunc("/JSON", JSONResponse )
 	mux.HandleFunc("/Hello", TextResponse )
 
-	// go run generate_cert.go --host localhost --ca
+
 	http.Handle("/", mux)
 	err := http.ListenAndServeTLS(port, "cert.pem", "key.pem", nil)
 	if err != nil{
