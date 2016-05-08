@@ -3,41 +3,29 @@ package main
 import (
 	"log"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"net/http"
-	"encoding/json"
-	"io"
 )
 
-const port string = ":8000"
-
-type Response struct{
-	Message string `json:"message"`
-}
-
-func JSONResponse(w http.ResponseWriter, r *http.Request){
-	response := CreateResponse()
-	json.NewEncoder(w).Encode(response)
-}
-
-func TextResponse(w http.ResponseWriter, r *http.Request){
-	io.WriteString(w, "Hello World")
-}
-
-func CreateResponse() Response{
-	return Response{ "Hola Mundo" }
+func Home(w http.ResponseWriter, r *http.Request){
+	//w.Header().Set("Content-Type", "application/json")
+	log.Println("Entro")
+	http.ServeFile(w,r,"Front/index.html")
 }
 
 func main() {
+	cssHandler := http.FileServer(http.Dir("./Front/css/"))
+	js_Handler := http.FileServer(http.Dir("./Front/js/"))
+
 	mux := mux.NewRouter()
-	mux.HandleFunc("/JSON", JSONResponse )
-	mux.HandleFunc("/Hello", TextResponse )
+	mux.HandleFunc("/", Home ).Methods("Get")
+	http.Handle("/css/", http.StripPrefix("/css/", cssHandler))
+	http.Handle("/js/", http.StripPrefix("/js/", js_Handler))
 
+	handler := cors.Default().Handler(mux)
 
-	http.Handle("/", mux)
-	err := http.ListenAndServeTLS(port, "cert.pem", "key.pem", nil)
-	if err != nil{
-		log.Fatal("ListenAndServe : ", err)
-	}
+	log.Println("Sever listen in the port 8000")
+	log.Fatal(  http.ListenAndServe(":8000", handler) )	
 }
 
 
